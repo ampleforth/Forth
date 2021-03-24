@@ -106,8 +106,12 @@ describe('Forth', () => {
     let timestamp = await forth.mintingAllowedAfter()
     await mineBlock(provider, timestamp.toString())
 
-    await expect(forth.connect(other1).mint(other1.address, 1)).to.be.revertedWith('Forth::mint: only the minter can mint')
-    await expect(forth.mint('0x0000000000000000000000000000000000000000', 1)).to.be.revertedWith('Forth::mint: cannot transfer to the zero address')
+    await expect(forth.connect(other1).mint(other1.address, 1)).to.be.revertedWith(
+      'Forth::mint: only the minter can mint'
+    )
+    await expect(forth.mint('0x0000000000000000000000000000000000000000', 1)).to.be.revertedWith(
+      'Forth::mint: cannot transfer to the zero address'
+    )
 
     // can mint up to 2%
     const mintCap = BigNumber.from(await forth.mintCap())
@@ -118,6 +122,8 @@ describe('Forth', () => {
     timestamp = await forth.mintingAllowedAfter()
     await mineBlock(provider, timestamp.toString())
     // cannot mint 2.01%
-    await expect(forth.mint(wallet.address, supply.mul(mintCap.add(1)))).to.be.revertedWith('Forth::mint: exceeded mint cap')
+    await expect(forth.mint(wallet.address, supply.mul(mintCap.add(1)))).to.be.revertedWith(
+      'Forth::mint: exceeded mint cap'
+    )
   })
 })
