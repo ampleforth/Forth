@@ -1,4 +1,6 @@
-pragma solidity ^0.5.16;
+// SPDX-License-Identifier: BSD-3-Clause
+
+pragma solidity 0.6.11;
 pragma experimental ABIEncoderV2;
 
 import "./SafeMath.sol";
@@ -28,10 +30,10 @@ contract Forth {
     /// @notice Cap on the percentage of totalSupply that can be minted at each mint
     uint8 public constant mintCap = 2;
 
-    /// @notice Allowance amounts on behalf of others
+    /// @dev Allowance amounts on behalf of others
     mapping (address => mapping (address => uint96)) internal allowances;
 
-    /// @notice Official record of token balances for each account
+    /// @dev Official record of token balances for each account
     mapping (address => uint96) internal balances;
 
     /// @notice A record of each accounts delegate
