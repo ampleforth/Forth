@@ -1,4 +1,4 @@
-# @uniswap/governance
+# @ampleforth/Forth-v2
 
-Forked from 
-[https://github.com/compound-finance/compound-protocol/tree/v2.8.1](https://github.com/compound-finance/compound-protocol/tree/v2.8.1)
+Forked from
+[https://github.com/Uniswap/governance/tree/v1.0.2](https://github.com/Uniswap/governance/tree/v1.0.2)
