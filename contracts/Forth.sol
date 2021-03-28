@@ -120,7 +120,8 @@ contract Forth {
         // mint the amount
         uint96 amount = safe96(rawAmount, "Forth::mint: amount exceeds 96 bits");
         require(amount <= SafeMath.div(SafeMath.mul(totalSupply, mintCap), 100), "Forth::mint: exceeded mint cap");
-        totalSupply = safe96(SafeMath.add(totalSupply, amount), "Forth::mint: totalSupply exceeds 96 bits");
+        uint96 supply = safe96(totalSupply, "Forth::mint old totalSupply exceeds 96 bits");
+        totalSupply = add96(supply, amount, "Forth::mint: new totalSupply exceeds 96 bits");
 
         // transfer the amount to the recipient
         balances[dst] = add96(balances[dst], amount, "Forth::mint: transfer amount overflows");
@@ -150,8 +151,8 @@ contract Forth {
      */
     function approve(address spender, uint rawAmount) external returns (bool) {
         uint96 amount;
-        if (rawAmount == uint(-1)) {
-            amount = uint96(-1);
+        if (rawAmount == type(uint).max) {
+            amount = type(uint96).max;
         } else {
             amount = safe96(rawAmount, "Forth::approve: amount exceeds 96 bits");
         }
@@ -174,8 +175,8 @@ contract Forth {
      */
     function permit(address owner, address spender, uint rawAmount, uint deadline, uint8 v, bytes32 r, bytes32 s) external {
         uint96 amount;
-        if (rawAmount == uint(-1)) {
-            amount = uint96(-1);
+        if (rawAmount == type(uint).max) {
+            amount = type(uint96).max;
         } else {
             amount = safe96(rawAmount, "Forth::permit: amount exceeds 96 bits");
         }
@@ -226,7 +227,7 @@ contract Forth {
         uint96 spenderAllowance = allowances[src][spender];
         uint96 amount = safe96(rawAmount, "Forth::approve: amount exceeds 96 bits");
 
-        if (spender != src && spenderAllowance != uint96(-1)) {
+        if (spender != src && spenderAllowance != type(uint96).max) {
             uint96 newAllowance = sub96(spenderAllowance, amount, "Forth::transferFrom: transfer amount exceeds spender allowance");
             allowances[src][spender] = newAllowance;
 
