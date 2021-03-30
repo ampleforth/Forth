@@ -126,4 +126,76 @@ describe('Forth', () => {
       'Forth::mint: exceeded mint cap'
     )
   })
+
+  it('burn', async () => {
+    const { timestamp: now } = await provider.getBlock('latest')
+    const forth = await deployContract(wallet, Forth, [wallet.address, wallet.address, now + 60 * 60])
+    const supply = await forth.totalSupply()
+
+    // burn 0
+    let balanceBefore = await forth.balanceOf(wallet.address)
+    await forth.connect(wallet).burn(0)
+    expect(await forth.balanceOf(wallet.address)).to.be.eq(balanceBefore)
+    expect(await forth.totalSupply()).to.be.eq(supply)
+
+    // burn non-zero
+    await forth.connect(wallet).burn(1)
+    expect(await forth.balanceOf(wallet.address)).to.be.eq(balanceBefore.sub(1))
+    expect(await forth.totalSupply()).to.be.eq(supply.sub(1))
+
+    // burn > totalSupply
+    await expect(forth.connect(wallet).burn(supply + 2)).to.be.revertedWith('Forth::_burn: amount exceeds totalSupply')
+
+    // burn > balance
+    await forth.connect(wallet).transfer(other0.address, 100)
+    balanceBefore = await forth.balanceOf(wallet.address)
+    await expect(forth.connect(wallet).burn(balanceBefore.add(1))).to.be.revertedWith(
+      'Forth::_burn: amount exceeds balance'
+    )
+  })
+
+  it('burnFrom', async () => {
+    const { timestamp: now } = await provider.getBlock('latest')
+    const forth = await deployContract(wallet, Forth, [wallet.address, wallet.address, now + 60 * 60])
+    const supply = await forth.totalSupply()
+
+    // burn 0
+    let balanceBefore = await forth.balanceOf(wallet.address)
+    await forth.connect(other0).burnFrom(wallet.address, 0)
+    expect(await forth.balanceOf(wallet.address)).to.be.eq(balanceBefore)
+    expect(await forth.totalSupply()).to.be.eq(supply)
+
+    // burn non-zero
+    await forth.connect(wallet).approve(other0.address, 100)
+    await forth.connect(other0).burnFrom(wallet.address, 1)
+    expect(await forth.balanceOf(wallet.address)).to.be.eq(balanceBefore.sub(1))
+    expect(await forth.totalSupply()).to.be.eq(supply.sub(1))
+
+    // burn > approval
+    balanceBefore = await forth.balanceOf(wallet.address)
+    await forth.connect(wallet).approve(other0.address, 100)
+    await expect(forth.connect(other0).burnFrom(wallet.address, 101)).to.be.revertedWith(
+      'Forth::burnFrom: amount exceeds allowance'
+    )
+
+    // burn > totalSupply
+    balanceBefore = await forth.balanceOf(wallet.address)
+    await forth.connect(wallet).approve(other0.address, balanceBefore.add(1))
+    await expect(forth.connect(other0).burnFrom(wallet.address, balanceBefore.add(1))).to.be.revertedWith(
+      'Forth::_burn: amount exceeds totalSupply'
+    )
+
+    // burn > balance
+    await forth.connect(wallet).transfer(other0.address, 100)
+    balanceBefore = await forth.balanceOf(wallet.address)
+    await forth.connect(wallet).approve(other0.address, balanceBefore.add(1))
+    await expect(forth.connect(other0).burnFrom(wallet.address, balanceBefore.add(1))).to.be.revertedWith(
+      'Forth::_burn: amount exceeds balance'
+    )
+
+    // Zero Address
+    await expect(forth.connect(wallet).burnFrom('0x0000000000000000000000000000000000000000', 0)).to.be.revertedWith(
+      'Forth::_burn: burn from the zero address'
+    )
+  })
 })
