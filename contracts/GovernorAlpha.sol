@@ -1,15 +1,17 @@
-pragma solidity ^0.5.16;
+// SPDX-License-Identifier: BSD-3-Clause
+
+pragma solidity 0.6.11;
 pragma experimental ABIEncoderV2;
 
 contract GovernorAlpha {
     /// @notice The name of this contract
-    string public constant name = "Uniswap Governor Alpha";
+    string public constant name = "Ampleforth Governor Alpha";
 
     /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
-    function quorumVotes() public pure returns (uint) { return 40_000_000e18; } // 4% of Uni
+    function quorumVotes() public pure returns (uint) { return 600_000e18; } // 4% of Forth
 
     /// @notice The number of votes required in order for a voter to become a proposer
-    function proposalThreshold() public pure returns (uint) { return 10_000_000e18; } // 1% of Uni
+    function proposalThreshold() public pure returns (uint) { return 150_000e18; } // 1% of Forth
 
     /// @notice The maximum number of actions that can be included in a proposal
     function proposalMaxOperations() public pure returns (uint) { return 10; } // 10 actions
@@ -20,68 +22,68 @@ contract GovernorAlpha {
     /// @notice The duration of voting on a proposal, in blocks
     function votingPeriod() public pure returns (uint) { return 40_320; } // ~7 days in blocks (assuming 15s blocks)
 
-    /// @notice The address of the Uniswap Protocol Timelock
+    /// @notice The address of the Ampleforth Protocol Timelock
     TimelockInterface public timelock;
 
-    /// @notice The address of the Uniswap governance token
-    UniInterface public uni;
+    /// @notice The address of the Ampleforth governance token
+    ForthInterface public forth;
 
     /// @notice The total number of proposals
     uint public proposalCount;
 
     struct Proposal {
-        /// @notice Unique id for looking up a proposal
+        // Unique id for looking up a proposal
         uint id;
 
-        /// @notice Creator of the proposal
+        // Creator of the proposal
         address proposer;
 
-        /// @notice The timestamp that the proposal will be available for execution, set once the vote succeeds
+        // The timestamp that the proposal will be available for execution, set once the vote succeeds
         uint eta;
 
-        /// @notice the ordered list of target addresses for calls to be made
+        // The ordered list of target addresses for calls to be made
         address[] targets;
 
-        /// @notice The ordered list of values (i.e. msg.value) to be passed to the calls to be made
+        // The ordered list of values (i.e. msg.value) to be passed to the calls to be made
         uint[] values;
 
-        /// @notice The ordered list of function signatures to be called
+        // The ordered list of function signatures to be called
         string[] signatures;
 
-        /// @notice The ordered list of calldata to be passed to each call
+        // The ordered list of calldata to be passed to each call
         bytes[] calldatas;
 
-        /// @notice The block at which voting begins: holders must delegate their votes prior to this block
+        // The block at which voting begins: holders must delegate their votes prior to this block
         uint startBlock;
 
-        /// @notice The block at which voting ends: votes must be cast prior to this block
+        // The block at which voting ends: votes must be cast prior to this block
         uint endBlock;
 
-        /// @notice Current number of votes in favor of this proposal
+        // Current number of votes in favor of this proposal
         uint forVotes;
 
-        /// @notice Current number of votes in opposition to this proposal
+        // Current number of votes in opposition to this proposal
         uint againstVotes;
 
-        /// @notice Flag marking whether the proposal has been canceled
+        // Flag marking whether the proposal has been canceled
         bool canceled;
 
-        /// @notice Flag marking whether the proposal has been executed
+        // Flag marking whether the proposal has been executed
         bool executed;
 
-        /// @notice Receipts of ballots for the entire set of voters
+        // Receipts of ballots for the entire set of voters
         mapping (address => Receipt) receipts;
     }
 
     /// @notice Ballot receipt record for a voter
     struct Receipt {
-        /// @notice Whether or not a vote has been cast
+        // Whether or not a vote has been cast
         bool hasVoted;
 
-        /// @notice Whether or not the voter supports the proposal
+        // Whether or not the voter supports the proposal
         bool support;
 
-        /// @notice The number of votes the voter had, which were cast
+        // The number of votes the voter had, which were cast
         uint96 votes;
     }
 
@@ -124,13 +126,13 @@ contract GovernorAlpha {
     /// @notice An event emitted when a proposal has been executed in the Timelock
     event ProposalExecuted(uint id);
 
-    constructor(address timelock_, address uni_) public {
+    constructor(address timelock_, address forth_) public {
         timelock = TimelockInterface(timelock_);
-        uni = UniInterface(uni_);
+        forth = ForthInterface(forth_);
     }
 
     function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
-        require(uni.getPriorVotes(msg.sender, sub256(block.number, 1)) > proposalThreshold(), "GovernorAlpha::propose: proposer votes below proposal threshold");
+        require(forth.getPriorVotes(msg.sender, sub256(block.number, 1)) > proposalThreshold(), "GovernorAlpha::propose: proposer votes below proposal threshold");
         require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "GovernorAlpha::propose: proposal function information arity mismatch");
         require(targets.length != 0, "GovernorAlpha::propose: must provide actions");
         require(targets.length <= proposalMaxOperations(), "GovernorAlpha::propose: too many actions");
@@ -190,7 +192,7 @@ contract GovernorAlpha {
         Proposal storage proposal = proposals[proposalId];
         proposal.executed = true;
         for (uint i = 0; i < proposal.targets.length; i++) {
-            timelock.executeTransaction.value(proposal.values[i])(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
+            timelock.executeTransaction{value: proposal.values[i]}(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
         }
         emit ProposalExecuted(proposalId);
     }
@@ -200,7 +202,7 @@ contract GovernorAlpha {
         require(state != ProposalState.Executed, "GovernorAlpha::cancel: cannot cancel executed proposal");
 
         Proposal storage proposal = proposals[proposalId];
-        require(uni.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold(), "GovernorAlpha::cancel: proposer above threshold");
+        require(forth.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold(), "GovernorAlpha::cancel: proposer above threshold");
 
         proposal.canceled = true;
         for (uint i = 0; i < proposal.targets.length; i++) {
@@ -259,7 +261,7 @@ contract GovernorAlpha {
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[voter];
         require(receipt.hasVoted == false, "GovernorAlpha::_castVote: voter already voted");
-        uint96 votes = uni.getPriorVotes(voter, proposal.startBlock);
+        uint96 votes = forth.getPriorVotes(voter, proposal.startBlock);
 
         if (support) {
             proposal.forVotes = add256(proposal.forVotes, votes);
@@ -302,6 +304,6 @@ interface TimelockInterface {
     function executeTransaction(address target, uint value, string calldata signature, bytes calldata data, uint eta) external payable returns (bytes memory);
 }
 
-interface UniInterface {
+interface ForthInterface {
     function getPriorVotes(address account, uint blockNumber) external view returns (uint96);
 }
