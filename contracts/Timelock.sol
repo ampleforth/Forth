@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
-pragma solidity ^0.6.11;
+pragma solidity 0.6.11;
 
 import "./SafeMath.sol";
 
