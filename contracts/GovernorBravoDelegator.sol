@@ -8,7 +8,7 @@ import "./GovernorBravoInterfaces.sol";
 contract GovernorBravoDelegator is GovernorBravoDelegatorStorage, GovernorBravoEvents {
     constructor(
                 address timelock_,
-                address comp_,
+                address forth_,
                 address admin_,
 	        address implementation_,
 	        uint votingPeriod_,
@@ -20,7 +20,7 @@ contract GovernorBravoDelegator is GovernorBravoDelegatorStorage, GovernorBravoE
 
         delegateTo(implementation_, abi.encodeWithSignature("initialize(address,address,uint256,uint256,uint256)",
                                                             timelock_,
-                                                            comp_,
+                                                            forth_,
                                                             votingPeriod_,
                                                             votingDelay_,
                                                             proposalThreshold_));
