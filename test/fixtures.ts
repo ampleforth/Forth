@@ -14,13 +14,13 @@ interface GovernanceFixture {
 }
 
 export async function governanceFixture(
-    [wallet]: Wallet[],
-    provider: providers.Web3Provider
+  [wallet]: Wallet[],
+  provider: providers.Web3Provider
 ): Promise<GovernanceFixture> {
-    // deploy FORTH, sending the total supply to the deployer
-    const { timestamp: now } = await provider.getBlock('latest')
-    const timelockAddress = Contract.getContractAddress({ from: wallet.address, nonce: 1 })
-    const forth = await deployContract(wallet, Forth, [wallet.address, timelockAddress, now + 60 * 60])
+  // deploy FORTH, sending the total supply to the deployer
+  const { timestamp: now } = await provider.getBlock('latest')
+  const timelockAddress = Contract.getContractAddress({ from: wallet.address, nonce: 1 })
+  const forth = await deployContract(wallet, Forth, [wallet.address, timelockAddress, now + 60 * 60])
 
   return { forth }
 }
