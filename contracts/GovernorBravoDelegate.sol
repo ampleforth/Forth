@@ -320,11 +320,11 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV1, GovernorBravoE
 
     /**
      * @notice Initiate the GovernorBravo contract
-     * @dev Admin only. Sets initial proposal id which initiates the contract, ensuring a continuous proposal id count
+     * @dev Admin only
      */
-    function _initiate(address governorAlpha) external {
+    function _initiate() external {
         require(msg.sender == admin, "GovernorBravo::_initiate: admin only");
-        require(initialProposalId == 0, "GovernorBravo::_initiate: can only initiate once");
+        require(proposalCount == 0, "GovernorBravo::_initiate: can only initiate once");
         timelock.acceptAdmin();
     }
 
