@@ -58,6 +58,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV1, GovernorBravoE
         require(proposalThreshold_ >= MIN_PROPOSAL_THRESHOLD && proposalThreshold_ <= MAX_PROPOSAL_THRESHOLD, "GovernorBravo::initialize: invalid proposal threshold");
 
         timelock = TimelockInterface(timelock_);
+        timelock.acceptAdmin();
         forth = ForthInterface(forth_);
         votingPeriod = votingPeriod_;
         votingDelay = votingDelay_;
@@ -316,16 +317,6 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV1, GovernorBravoE
         proposalThreshold = newProposalThreshold;
 
         emit ProposalThresholdSet(oldProposalThreshold, proposalThreshold);
-    }
-
-    /**
-     * @notice Initiate the GovernorBravo contract
-     * @dev Admin only
-     */
-    function _initiate() external {
-        require(msg.sender == admin, "GovernorBravo::_initiate: admin only");
-        require(proposalCount == 0, "GovernorBravo::_initiate: can only initiate once");
-        timelock.acceptAdmin();
     }
 
     /**
