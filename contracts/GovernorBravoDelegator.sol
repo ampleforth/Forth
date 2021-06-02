@@ -10,9 +10,9 @@ contract GovernorBravoDelegator is GovernorBravoDelegatorStorage, GovernorBravoE
                 address timelock_,
                 address forth_,
                 address admin_,
-	        address implementation_,
-	        uint votingPeriod_,
-	        uint votingDelay_,
+                address implementation_,
+                uint votingPeriod_,
+                uint votingDelay_,
                 uint proposalThreshold_) public {
 
         // Admin set to msg.sender for initialization
