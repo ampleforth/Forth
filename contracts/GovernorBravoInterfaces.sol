@@ -73,9 +73,6 @@ contract GovernorBravoDelegateStorageV1 is GovernorBravoDelegatorStorage {
     /// @notice The number of votes required in order for a voter to become a proposer
     uint public proposalThreshold;
 
-    /// @notice Initial proposal id set at become
-    uint public initialProposalId;
-
     /// @notice The total number of proposals
     uint public proposalCount;
 
@@ -176,9 +173,4 @@ interface TimelockInterface {
 
 interface ForthInterface {
     function getPriorVotes(address account, uint blockNumber) external view returns (uint96);
-}
-
-interface GovernorAlpha {
-    /// @notice The total number of proposals
-    function proposalCount() external returns (uint);
 }
